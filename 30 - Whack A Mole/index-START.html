@@ -8,7 +8,8 @@
 </head>
 <body>
 
-  <h1>Whack-a-mole! <span class="score">0</span></h1>
+  <h1>Whack-a-mole! <span class="score">0</span>
+    <span class="record_score">0</span></h1>
   <button onClick="startGame()">Start!</button>
 
   <div class="game">
@@ -35,7 +36,65 @@
 <script>
   const holes = document.querySelectorAll('.hole');
   const scoreBoard = document.querySelector('.score');
+  const recordScore = document.querySelector('.record_score');
   const moles = document.querySelectorAll('.mole');
+  let lasthole;
+  let timeUp = false;
+  let score = 0;
+  let bestScore = +localStorage.getItem('key', score);
+  
+  recordScore.textContent = bestScore?bestScore:0;
+
+
+  function randomTime(min, max){
+    return Math.round(Math.random()*(max - min) + min)
+  }
+
+function randomHole(holes){
+  const index = Math.floor(Math.random()*holes.length)
+  const hole = holes[index]
+  if(hole === lasthole){
+    console.log('Ups')
+    return randomHole(holes)
+  }
+lasthole = hole
+return hole
+}
+
+function peep(){
+  const time = randomTime(200, 1000)
+  const hole = randomHole(holes)
+  hole.classList.add('up')
+  setTimeout(() => {
+    hole.classList.remove('up')
+    if (!timeUp) peep()
+  }, time)
+}
+
+function startGame(){
+  scoreBoard.textContent = 0;
+  timeUp = false;
+  score = 0;
+  recordScore.textContent = bestScore?bestScore:0;
+  peep();
+  setTimeout(() => timeUp = true, 10000)
+}
+
+
+function bonk(e){
+  if (!e.isTrusted) return;
+  score++;
+  this.parentNode.classList.remove('up')
+  scoreBoard.textContent = score;
+
+  if (score>bestScore){
+    bestScore = score
+    localStorage.setItem('key', score);
+  }
+  recordScore.textContent = bestScore?bestScore:0;
+}
+
+moles.forEach(mole => mole.addEventListener('click', bonk))
 
 </script>
 </body>
